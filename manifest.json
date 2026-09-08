@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "title": "Ratello Corp",
+  "description": "A collection of focused desktop tools for Grand Theft Auto customization.",
+  "apps": [
+    {
+      "name": "Emblem Helper",
+      "long_name": "GTA Emblem Helper",
+      "version": "1.1",
+      "description": "Convert SVG artwork into gradient-based shapes that can be brought into the GTA emblem editor.",
+      "author": "Flashback-GTA",
+      "path": "emblem.html",
+      "icon": "media/emblem-helper.svg",
+      "accent": "#428bca"
+    },
+    {
+      "name": "Layout Designer",
+      "long_name": "YimMenuV2 Layout Designer",
+      "version": "3",
+      "description": "Build and preview YimMenuV2 layouts, panels, tabs, and controls in a visual desktop workspace.",
+      "path": "ymld.html",
+      "icon": "media/yim-layout.svg",
+      "accent": "#5cb85c"
+    }
+  ]
+}

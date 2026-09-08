@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#000000">
+  <meta name="description" content="Ratello Corp — a desktop launcher for GTA tools, including Emblem Helper and YimMenuV2 Layout Designer.">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <title>Ratello Corp</title>
+  <style>
+    :root {
+      --bg: #000;
+      --panel: #333;
+      --panel-deep: #292929;
+      --border: #46494e;
+      --text: #fff;
+      --muted: #aaa;
+      --subtle: #777672;
+      --primary: #428bca;
+      --success: #5cb85c;
+      --danger: #d9534f;
+      --warning: #f0ad4e;
+      --glass: rgba(51, 51, 51, .78);
+      --shadow: 0 18px 55px rgba(0, 0, 0, .42);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; background: #000; }
+    body {
+      overflow: hidden;
+      color: var(--text);
+      background: #000;
+      font-family: "Source Sans Pro", "Segoe UI", Helvetica, Arial, sans-serif;
+      font-weight: 600;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      user-select: none;
+    }
+
+    button, input { font: inherit; }
+    button { color: inherit; }
+    .home-background {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .75;
+      background:
+        linear-gradient(to top, #000 0%, transparent 100%),
+        url('https://cdn.gtahighclass.network/assets/627384.png') center / cover no-repeat;
+    }
+
+    .desktop {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      padding: 34px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, 142px);
+      grid-auto-rows: 142px;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .app-icon {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 14px 10px;
+      border: 1px solid transparent;
+      border-radius: 12px;
+      color: var(--text);
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform .16s ease, background .16s ease, border-color .16s ease;
+      outline: none;
+    }
+    .app-icon:hover, .app-icon:focus-visible, .app-icon.selected {
+      transform: translateY(-4px);
+      background: rgba(255,255,255,.045);
+      border-color: rgba(255,255,255,.08);
+    }
+    .app-icon:focus-visible { box-shadow: 0 0 0 3px rgba(66,139,202,.35); }
+    .icon-img {
+      width: 68px;
+      height: 68px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      background: linear-gradient(145deg, #383838, #252525);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 8px 22px rgba(0,0,0,.35);
+      transition: box-shadow .2s ease, border-color .2s ease;
+    }
+    .app-icon:hover .icon-img, .app-icon.selected .icon-img {
+      border-color: var(--app-accent, var(--primary));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 10px 28px color-mix(in srgb, var(--app-accent, var(--primary)) 25%, transparent);
+    }
+    .icon-img img { width: 100%; height: 100%; object-fit: cover; }
+    .app-name {
+      max-width: 126px;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.15;
+      text-align: center;
+      text-shadow: 0 2px 4px #000;
+    }
+
+    .app-tooltip {
+      position: fixed;
+      z-index: 300;
+      width: min(310px, calc(100vw - 30px));
+      padding: 12px 14px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      background: rgba(41,41,41,.96);
+      box-shadow: 6px 8px 24px rgba(0,0,0,.35);
+      opacity: 0;
+      visibility: hidden;
+      transform: translate(-50%, -4px);
+      transition: opacity .15s ease, transform .15s ease, visibility .15s;
+      pointer-events: none;
+    }
+    .app-tooltip.show { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+    .app-tooltip-title { margin-bottom: 4px; font-size: 14px; font-weight: 800; }
+    .app-tooltip-desc { color: #c7c7c7; font-size: 12px; line-height: 1.45; font-weight: 500; }
+
+    .loading-screen, .modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(20,20,20,.62);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .2s ease, visibility .2s;
+    }
+    .loading-screen.show, .modal.show { opacity: 1; visibility: visible; }
+    .loader-content {
+      min-width: 250px;
+      padding: 28px;
+      text-align: center;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel-deep);
+      box-shadow: var(--shadow);
+    }
+    .spinner {
+      width: 38px;
+      height: 38px;
+      margin: 0 auto 16px;
+      border: 4px solid #3c3c3c;
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    .loading-text { font-size: 14px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .context-menu {
+      position: fixed;
+      z-index: 500;
+      display: none;
+      min-width: 224px;
+      padding: 6px;
+      border: 2px solid var(--border);
+      border-radius: 9px;
+      background: rgba(41,41,41,.98);
+      box-shadow: var(--shadow);
+    }
+    .context-menu.show { display: block; }
+    .context-menu button {
+      width: 100%;
+      padding: 10px 12px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      text-align: left;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .context-menu button:hover, .context-menu button:focus-visible { background: #3a3a3a; outline: none; }
+
+    .customize-banner {
+      position: fixed;
+      z-index: 600;
+      top: 18px;
+      left: 50%;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 9px 10px 9px 16px;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: rgba(41,41,41,.96);
+      box-shadow: var(--shadow);
+      transform: translate(-50%, -85px);
+      transition: transform .22s ease;
+      font-size: 13px;
+    }
+    body.customizing .customize-banner { transform: translate(-50%, 0); }
+    body.customizing .app-icon { cursor: grab; animation: wiggle .2s ease-in-out infinite alternate; }
+    body.customizing .app-icon:active { cursor: grabbing; }
+    .done-btn, .modal-btn {
+      border: 0;
+      border-radius: 7px;
+      padding: 8px 13px 10px;
+      background: var(--success);
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: inset 0 -3px 0 rgba(0,0,0,.2);
+    }
+    .done-btn:active, .modal-btn:active { transform: translateY(1px); box-shadow: inset 0 -2px 0 rgba(0,0,0,.2); }
+    @keyframes wiggle { from { transform: rotate(-.45deg); } to { transform: rotate(.45deg); } }
+
+    .selection-box {
+      position: absolute;
+      z-index: 1;
+      display: none;
+      border: 1px solid rgba(66,139,202,.85);
+      background: rgba(66,139,202,.16);
+      pointer-events: none;
+    }
+
+    .modal-content {
+      width: min(480px, calc(100vw - 32px));
+      overflow: hidden;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      transform: scale(.96);
+      transition: transform .2s ease;
+    }
+    .modal.show .modal-content { transform: scale(1); }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 15px 18px;
+      border-bottom: 2px solid var(--border);
+      background: var(--panel-deep);
+    }
+    .modal-header h2 { margin: 0; font-size: 17px; }
+    .close-modal {
+      width: 32px;
+      height: 32px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 23px;
+      line-height: 1;
+    }
+    .close-modal:hover { color: #fff; background: #3b3b3b; }
+    .modal-body { padding: 18px; color: #d2d2d2; font-size: 14px; line-height: 1.55; }
+    .setting-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+    .setting-row:last-of-type { margin-bottom: 16px; }
+    .setting-row strong { display: block; color: #fff; }
+    .setting-row span { display: block; color: var(--muted); font-size: 12px; font-weight: 500; }
+    .toggle { width: 42px; height: 24px; accent-color: var(--success); cursor: pointer; }
+    .modal-btn { background: var(--primary); }
+
+    .credits {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      z-index: 5;
+      padding: 8px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: rgba(41,41,41,.78);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: #ccc;
+      font-size: 14px;
+    }
+    .credits a { color: #fff; text-decoration: none; font-weight: 700; }
+    .credits a:hover { text-decoration: underline; }
+    .game-link {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 5;
+      display: block;
+      width: 180px;
+      border-radius: 8px;
+      transition: transform .2s ease;
+    }
+    .game-link img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 180px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,.4));
+    }
+    .game-link:hover { transform: scale(1.05); }
+    .credits a:focus-visible, .game-link:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
+
+    .mobile-block { display: none; }
+    .mobile-card {
+      width: min(380px, 100%);
+      padding: 32px 24px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: rgba(41,41,41,.96);
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .mobile-card .screen-icon { display: block; margin-bottom: 14px; font-size: 42px; }
+    .mobile-card h1 { margin: 0 0 8px; font-size: 21px; }
+    .mobile-card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
+
+    .load-error {
+      grid-column: 1 / -1;
+      align-self: start;
+      max-width: 460px;
+      padding: 16px;
+      border: 2px solid rgba(217,83,79,.7);
+      border-radius: 9px;
+      background: rgba(217,83,79,.12);
+      line-height: 1.5;
+    }
+    .load-error strong { display: block; margin-bottom: 3px; }
+    .load-error span { color: #ccc; font-size: 13px; }
+
+    @media (max-width: 760px), (max-height: 500px) {
+      .mobile-block { position: fixed; inset: 0; z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 24px; background: var(--bg); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="mobile-block">
+    <div class="mobile-card">
+      <span class="screen-icon" aria-hidden="true">&#128421;</span>
+      <h1>Desktop tools</h1>
+      <p>Emblem Helper and Layout Designer need a desktop-sized workspace. Open Ratello Corp on a larger screen to continue.</p>
+    </div>
+  </div>
+
+  <div class="home-background" aria-hidden="true"></div>
+
+  <div id="appTooltip" class="app-tooltip" role="tooltip">
+    <div class="app-tooltip-title"></div>
+    <div class="app-tooltip-desc"></div>
+  </div>
+
+  <div class="loading-screen" id="loadingScreen" aria-live="polite" aria-hidden="true">
+    <div class="loader-content">
+      <div class="spinner" aria-hidden="true"></div>
+      <div class="loading-text">Opening app...</div>
+    </div>
+  </div>
+
+  <div class="customize-banner">
+    Drag apps to rearrange
+    <button class="done-btn" id="doneCustomizeBtn" type="button">Done</button>
+  </div>
+
+  <main class="desktop" id="desktop" aria-label="Ratello Corp apps">
+    <div class="selection-box" id="selectionBox"></div>
+  </main>
+
+  <div class="context-menu" id="desktopContextMenu" role="menu">
+    <button id="customizeHomeBtn" type="button" role="menuitem">Customize Home Screen</button>
+    <button id="settingsBtn" type="button" role="menuitem">Settings</button>
+  </div>
+
+  <div class="modal" id="appModal" aria-hidden="true">
+    <section class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <header class="modal-header">
+        <h2 id="modalTitle">Settings</h2>
+        <button class="close-modal" id="closeModalBtn" type="button" aria-label="Close settings">&times;</button>
+      </header>
+      <div class="modal-body" id="modalBody"></div>
+    </section>
+  </div>
+
+  <div class="credits">Designed by <a href="https://www.youtube.com/@gtahighclass" target="_blank" rel="noopener noreferrer">gtahighclass</a></div>
+  <a class="game-link" href="https://www.rockstargames.com/gta-v" target="_blank" rel="noopener noreferrer" aria-label="Grand Theft Auto V — official website">
+    <img src="https://cdn.gtahighclass.network/assets/273839.png" alt="Grand Theft Auto V" draggable="false">
+  </a>
+
+  <script>
+    (() => {
+      const desktop = document.getElementById('desktop');
+      const selectionBox = document.getElementById('selectionBox');
+      const tooltip = document.getElementById('appTooltip');
+      const contextMenu = document.getElementById('desktopContextMenu');
+      const loadingScreen = document.getElementById('loadingScreen');
+      const modal = document.getElementById('appModal');
+      const modalBody = document.getElementById('modalBody');
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      let draggedItem = null;
+      let selectionStart = null;
+
+      const readSetting = (key, fallback) => {
+        const value = localStorage.getItem(key);
+        return value === null ? fallback : value === 'true';
+      };
+
+      function hideTooltip() {
+        tooltip.classList.remove('show');
+      }
+
+      function showTooltip(anchor, app) {
+        if (!readSetting('gtaTooltips', true) || document.body.classList.contains('customizing')) return;
+        tooltip.querySelector('.app-tooltip-title').textContent = app.long_name || app.name;
+        tooltip.querySelector('.app-tooltip-desc').textContent = app.description || '';
+        const rect = anchor.getBoundingClientRect();
+        const half = 155;
+        const center = Math.max(half + 10, Math.min(window.innerWidth - half - 10, rect.left + rect.width / 2));
+        tooltip.style.left = `${center}px`;
+        tooltip.style.top = `${Math.min(window.innerHeight - 100, rect.bottom + 10)}px`;
+        tooltip.classList.add('show');
+      }
+
+      function openApp(anchor, app) {
+        if (document.body.classList.contains('customizing')) return;
+        hideTooltip();
+        document.querySelectorAll('.app-icon').forEach(icon => icon.classList.remove('selected'));
+        anchor.classList.add('selected');
+        if (!readSetting('gtaAnimations', true) || reduceMotion) {
+          window.location.href = app.path;
+          return;
+        }
+        loadingScreen.querySelector('.loading-text').textContent = `Opening ${app.long_name || app.name}...`;
+        loadingScreen.classList.add('show');
+        loadingScreen.setAttribute('aria-hidden', 'false');
+        window.setTimeout(() => { window.location.href = app.path; }, 420);
+      }
+
+      function makeAppIcon(app) {
+        const anchor = document.createElement('a');
+        anchor.href = app.path;
+        anchor.className = 'app-icon desktop-item';
+        anchor.draggable = true;
+        anchor.dataset.appId = app.name;
+        anchor.style.setProperty('--app-accent', app.accent || 'var(--primary)');
+        anchor.setAttribute('aria-label', `${app.long_name || app.name}. ${app.description || ''}`);
+
+        const icon = document.createElement('span');
+        icon.className = 'icon-img';
+        if (app.icon) {
+          const image = document.createElement('img');
+          image.src = app.icon;
+          image.alt = '';
+          image.draggable = false;
+          image.addEventListener('error', () => { icon.textContent = app.monogram || 'GTA'; });
+          icon.appendChild(image);
+        } else {
+          icon.textContent = app.monogram || 'GTA';
+        }
+
+        const label = document.createElement('span');
+        label.className = 'app-name';
+        label.textContent = app.name;
+        anchor.append(icon, label);
+        anchor.addEventListener('mouseenter', () => showTooltip(anchor, app));
+        anchor.addEventListener('mouseleave', hideTooltip);
+        anchor.addEventListener('focus', () => showTooltip(anchor, app));
+        anchor.addEventListener('blur', hideTooltip);
+        anchor.addEventListener('click', event => {
+          event.preventDefault();
+          openApp(anchor, app);
+        });
+        return anchor;
+      }
+
+      async function loadApps() {
+        try {
+          const response = await fetch('manifest.json', { cache: 'no-store' });
+          if (!response.ok) throw new Error(`Manifest request failed (${response.status})`);
+          const data = await response.json();
+          document.title = data.title || 'Ratello Corp';
+          const appsById = new Map(data.apps.map(app => [app.name, app]));
+          const savedOrder = JSON.parse(localStorage.getItem('gtaDesktopOrder') || '[]');
+          const ordered = savedOrder.map(id => appsById.get(id)).filter(Boolean);
+          data.apps.forEach(app => { if (!ordered.includes(app)) ordered.push(app); });
+          ordered.forEach(app => desktop.insertBefore(makeAppIcon(app), selectionBox));
+        } catch (error) {
+          const message = document.createElement('div');
+          message.className = 'load-error';
+          message.innerHTML = '<strong>Apps could not be loaded.</strong><span>Run this folder through a local web server so the launcher can read manifest.json.</span>';
+          desktop.insertBefore(message, selectionBox);
+          console.error(error);
+        }
+      }
+
+      function saveOrder() {
+        const order = [...document.querySelectorAll('.desktop-item')].map(item => item.dataset.appId);
+        localStorage.setItem('gtaDesktopOrder', JSON.stringify(order));
+      }
+
+      desktop.addEventListener('dragstart', event => {
+        if (!document.body.classList.contains('customizing')) { event.preventDefault(); return; }
+        draggedItem = event.target.closest('.desktop-item');
+        if (!draggedItem) return;
+        event.dataTransfer.effectAllowed = 'move';
+        requestAnimationFrame(() => { draggedItem.style.opacity = '.35'; });
+      });
+
+      desktop.addEventListener('dragover', event => {
+        if (!draggedItem) return;
+        event.preventDefault();
+        const target = event.target.closest('.desktop-item');
+        if (!target || target === draggedItem) return;
+        const rect = target.getBoundingClientRect();
+        const after = event.clientX > rect.left + rect.width / 2;
+        desktop.insertBefore(draggedItem, after ? target.nextSibling : target);
+      });
+
+      desktop.addEventListener('drop', event => { if (draggedItem) { event.preventDefault(); saveOrder(); } });
+      desktop.addEventListener('dragend', () => {
+        if (draggedItem) draggedItem.style.opacity = '';
+        draggedItem = null;
+        saveOrder();
+      });
+
+      desktop.addEventListener('mousedown', event => {
+        if (event.button !== 0 || event.target.closest('.app-icon') || document.body.classList.contains('customizing')) return;
+        const rect = desktop.getBoundingClientRect();
+        selectionStart = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+        selectionBox.style.display = 'block';
+        selectionBox.style.left = `${selectionStart.x}px`;
+        selectionBox.style.top = `${selectionStart.y}px`;
+        selectionBox.style.width = '0';
+        selectionBox.style.height = '0';
+        document.querySelectorAll('.app-icon').forEach(icon => icon.classList.remove('selected'));
+      });
+
+      window.addEventListener('mousemove', event => {
+        if (!selectionStart) return;
+        const rect = desktop.getBoundingClientRect();
+        const x = Math.max(0, Math.min(rect.width, event.clientX - rect.left));
+        const y = Math.max(0, Math.min(rect.height, event.clientY - rect.top));
+        const left = Math.min(selectionStart.x, x);
+        const top = Math.min(selectionStart.y, y);
+        const width = Math.abs(x - selectionStart.x);
+        const height = Math.abs(y - selectionStart.y);
+        Object.assign(selectionBox.style, { left: `${left}px`, top: `${top}px`, width: `${width}px`, height: `${height}px` });
+        const selectionRect = selectionBox.getBoundingClientRect();
+        document.querySelectorAll('.app-icon').forEach(icon => {
+          const iconRect = icon.getBoundingClientRect();
+          const overlaps = !(iconRect.right < selectionRect.left || iconRect.left > selectionRect.right || iconRect.bottom < selectionRect.top || iconRect.top > selectionRect.bottom);
+          icon.classList.toggle('selected', overlaps);
+        });
+      });
+
+      window.addEventListener('mouseup', () => {
+        selectionStart = null;
+        selectionBox.style.display = 'none';
+      });
+
+      desktop.addEventListener('contextmenu', event => {
+        if (event.target.closest('.app-icon')) return;
+        event.preventDefault();
+        const width = 224;
+        const height = 92;
+        contextMenu.style.left = `${Math.min(event.clientX, window.innerWidth - width - 8)}px`;
+        contextMenu.style.top = `${Math.min(event.clientY, window.innerHeight - height - 8)}px`;
+        contextMenu.classList.add('show');
+        contextMenu.querySelector('button').focus();
+      });
+
+      document.addEventListener('click', event => {
+        if (!event.target.closest('.context-menu')) contextMenu.classList.remove('show');
+      });
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+          contextMenu.classList.remove('show');
+          closeModal();
+          if (document.body.classList.contains('customizing')) finishCustomizing();
+        }
+      });
+
+      function startCustomizing() {
+        contextMenu.classList.remove('show');
+        hideTooltip();
+        document.body.classList.add('customizing');
+      }
+      function finishCustomizing() {
+        document.body.classList.remove('customizing');
+        saveOrder();
+      }
+      document.getElementById('customizeHomeBtn').addEventListener('click', startCustomizing);
+      document.getElementById('doneCustomizeBtn').addEventListener('click', finishCustomizing);
+
+      function openSettings() {
+        contextMenu.classList.remove('show');
+        modalBody.innerHTML = `
+          <div class="setting-row">
+            <div><strong>App descriptions</strong><span>Show details when an app is highlighted.</span></div>
+            <input class="toggle" id="tooltipSetting" type="checkbox" ${readSetting('gtaTooltips', true) ? 'checked' : ''} aria-label="Show app descriptions">
+          </div>
+          <div class="setting-row">
+            <div><strong>Opening animation</strong><span>Show a short transition before launching a tool.</span></div>
+            <input class="toggle" id="animationSetting" type="checkbox" ${readSetting('gtaAnimations', true) ? 'checked' : ''} aria-label="Show opening animation">
+          </div>
+          <button class="modal-btn" id="resetLayoutBtn" type="button">Reset app layout</button>`;
+        modal.classList.add('show');
+        modal.setAttribute('aria-hidden', 'false');
+        modalBody.querySelector('#tooltipSetting').addEventListener('change', event => localStorage.setItem('gtaTooltips', event.target.checked));
+        modalBody.querySelector('#animationSetting').addEventListener('change', event => localStorage.setItem('gtaAnimations', event.target.checked));
+        modalBody.querySelector('#resetLayoutBtn').addEventListener('click', () => {
+          localStorage.removeItem('gtaDesktopOrder');
+          window.location.reload();
+        });
+        document.getElementById('closeModalBtn').focus();
+      }
+      function closeModal() {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+      document.getElementById('settingsBtn').addEventListener('click', openSettings);
+      document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+      modal.addEventListener('click', event => { if (event.target === modal) closeModal(); });
+
+      loadApps();
+    })();
+  </script>
+</body>
+</html>

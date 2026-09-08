@@ -1,0 +1,1165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>YimMenuV2 Layout Designer</title>
+<style>
+:root {
+  --tool-bg:#242424;
+  --tool-side:#333333;
+  --tool-border:#46494e;
+  --tool-muted:#777672;
+  --tool-text:#ffffff;
+  --tool-primary:#428bca;
+  --tool-success:#5cb85c;
+  --tool-danger:#d9534f;
+  --tool-warning:#f0ad4e;
+
+  /* YimMenuV2 DefaultStyle() values from the repository. */
+  --ym-text:#e6e6e6;
+  --ym-disabled:#808080;
+  --ym-window:#141417;
+  --ym-child:#1a1a1f;
+  --ym-popup:#121217;
+  --ym-border:rgba(71,71,71,.25);
+  --ym-frame:#26262b;
+  --ym-frame-hover:rgba(89,150,89,.75);
+  --ym-button:#599659;
+  --ym-button-hover:#66a666;
+  --ym-button-active:#78bf78;
+  --ym-header:#4d804d;
+  --ym-check:#5cd98f;
+  --ym-separator:rgba(71,71,71,.50);
+  --ym-tab:#4d8c4d;
+  --ym-tab-active:#78bf78;
+  --ym-radius:8px;
+}
+*{box-sizing:border-box}
+html,body{width:100%;height:100%;margin:0}
+body{
+  overflow:hidden;
+  background:var(--tool-bg);
+  color:var(--tool-text);
+  font-family:"Source Sans Pro",Helvetica,Arial,sans-serif;
+  font-weight:600;
+  line-height:1.25;
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+}
+button,input,select,textarea{font:inherit}
+button{
+  width:100%;
+  border-radius:8px;
+  outline:0;
+  border:0;
+  font-size:13px;
+  font-weight:700;
+  color:#fff;
+  background:#111;
+  padding:9px 12px 12px;
+  margin:5px 0;
+  cursor:pointer;
+  transition:transform .05s ease,filter .05s ease;
+  box-shadow:inset 0 -4px 0 rgba(0,0,0,.22),1px 1px 0 #292929,2px 2px 0 #292929,3px 3px 0 #292929;
+}
+button:hover{filter:brightness(1.08)}
+button:active{transform:translate(2px,2px);box-shadow:inset 0 -3px 0 rgba(0,0,0,.22),1px 1px 0 #292929}
+button.primary{background:var(--tool-primary)}
+button.success{background:var(--tool-success)}
+button.danger{background:var(--tool-danger)}
+button.warning{background:var(--tool-warning)}
+button.subtle{background:#22262a}
+button:disabled{background:#777;color:#ddd;cursor:not-allowed;filter:none}
+input,select,textarea{
+  width:100%;
+  color:#fff;
+  background:#242424;
+  border:2px solid var(--tool-border);
+  border-radius:7px;
+  outline:none;
+  padding:8px 9px;
+}
+select{cursor:pointer}
+textarea{min-height:76px;resize:vertical}
+label{display:block;margin:8px 0 4px;color:#d0d0d0;font-size:12px;font-weight:600}
+fieldset{
+  border:2px solid var(--tool-border);
+  border-radius:8px;
+  padding:10px;
+  margin:0 0 14px;
+  min-width:0;
+}
+legend{
+  color:var(--tool-muted);
+  padding:0 8px;
+  font-size:13px;
+  font-weight:600;
+  text-shadow:1px 1px 2px #242424;
+}
+.small-note{color:#a8a8a8;font-size:11px;line-height:1.4;margin-top:7px}
+.topbar{
+  height:58px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:8px 12px;
+  background:#292929;
+  border-bottom:2px solid var(--tool-border);
+  box-shadow:0 3px 8px rgba(0,0,0,.28);
+  position:relative;
+  z-index:3;
+}
+.topbar .brand{font-size:18px;font-weight:800;white-space:nowrap;margin-right:6px}
+.topbar .path{font-size:11px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:360px}
+.topbar .grow{flex:1}
+.topbar button{width:auto;min-width:76px;margin:0;padding:8px 12px 11px}
+.topbar .home-button{min-width:40px;display:inline-flex;align-items:center;justify-content:center;padding:8px 10px 11px;flex-shrink:0}
+.home-button:focus-visible{outline:2px solid #428bca;outline-offset:3px}
+.app{
+  height:calc(100vh - 58px);
+  display:grid;
+  grid-template-columns:minmax(230px,20%) minmax(620px,60%) minmax(280px,20%);
+  min-width:1130px;
+}
+.column{min-height:0;overflow-y:auto;overflow-x:hidden}
+.sidebar,.inspector{background:var(--tool-side);box-shadow:0 0 8px 8px rgba(0,0,0,.18)}
+.sidebar{border-right:1px solid #222}
+.inspector{border-left:1px solid #222}
+.column-content{padding:16px;min-height:100%}
+.workspace{background:var(--tool-bg);overflow:auto;padding:16px;min-height:0}
+.workspace-title{text-align:center;color:#aaa;font-size:12px;margin:0 auto 9px;max-width:980px;display:flex;justify-content:space-between;gap:10px}
+.preview-wrap{min-width:760px;min-height:620px;display:flex;align-items:flex-start;justify-content:center;padding:65px 30px;background:#1e1e1e;border:2px solid #2c2c2c;border-radius:8px}
+
+/* Keep scrollbars visible only when content actually overflows. */
+.column,.workspace,.ym-submenus,.ym-categories,.ym-options,.panel-controls,.collapsible-children{
+  scrollbar-width:thin;
+  scrollbar-color:#666 #252525;
+}
+.column::-webkit-scrollbar,.workspace::-webkit-scrollbar,.ym-submenus::-webkit-scrollbar,.ym-categories::-webkit-scrollbar,.ym-options::-webkit-scrollbar,.panel-controls::-webkit-scrollbar,.collapsible-children::-webkit-scrollbar{width:10px;height:10px}
+.column::-webkit-scrollbar-track,.workspace::-webkit-scrollbar-track,.ym-submenus::-webkit-scrollbar-track,.ym-categories::-webkit-scrollbar-track,.ym-options::-webkit-scrollbar-track,.panel-controls::-webkit-scrollbar-track,.collapsible-children::-webkit-scrollbar-track{background:#252525}
+.column::-webkit-scrollbar-thumb,.workspace::-webkit-scrollbar-thumb,.ym-submenus::-webkit-scrollbar-thumb,.ym-categories::-webkit-scrollbar-thumb,.ym-options::-webkit-scrollbar-thumb,.panel-controls::-webkit-scrollbar-thumb,.collapsible-children::-webkit-scrollbar-thumb{background:#666;border-radius:8px;border:2px solid #252525}
+
+.tool-list{display:flex;flex-direction:column;gap:1px}
+.tool-list button{text-align:left}
+.tool-list button[draggable="true"]{cursor:grab}
+.tool-list button[draggable="true"]:active{cursor:grabbing}
+.row-buttons{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.row-buttons button{margin:3px 0}
+.selection-summary{padding:8px;border-radius:7px;background:#292929;color:#ddd;font-size:12px;border:1px solid #444}
+
+/* YimMenuV2 Classic shell */
+.ym-window{
+  width:min(820px,calc(100% - 20px));
+  height:470px;
+  display:grid;
+  grid-template-columns:120px minmax(0,1fr);
+  gap:10px;
+  padding:8px;
+  color:var(--ym-text);
+  background:var(--ym-window);
+  border-radius:var(--ym-radius);
+  box-shadow:0 18px 60px rgba(0,0,0,.55);
+  overflow:hidden;
+  font:13px/1.35 "Segoe UI",Arial,sans-serif;
+  font-weight:400;
+}
+.ym-left{min-width:0;display:grid;grid-template-rows:minmax(0,1fr) 20px;gap:6px}
+.ym-submenus{min-height:0;overflow:auto;padding:5px;background:var(--ym-child);border:1px solid var(--ym-border);border-radius:var(--ym-radius)}
+.ym-submenu{padding:5px 6px;border-radius:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ym-submenu.active{background:var(--ym-header)}
+.ym-brand{font-size:13px;line-height:20px;white-space:nowrap}
+.ym-right{min-width:0;display:grid;grid-template-rows:50px minmax(0,1fr);gap:10px}
+.ym-categories{padding:7px;display:flex;align-items:center;gap:7px;overflow-x:auto;overflow-y:hidden;background:var(--ym-child);border:1px solid var(--ym-border);border-radius:var(--ym-radius)}
+.ym-category{height:35px;flex:0 0 auto;padding:0 14px;display:flex;align-items:center;justify-content:center;border-radius:var(--ym-radius);background:rgba(89,150,89,.50);white-space:nowrap}
+.ym-category.active{background:var(--ym-button)}
+.ym-options{min-height:0;overflow:auto;padding:8px;background:var(--ym-child);border:1px solid var(--ym-border);border-radius:var(--ym-radius)}
+.inner-tabs{display:flex;gap:5px;align-items:flex-end;margin-bottom:8px;min-width:max-content;border-bottom:1px solid var(--ym-separator)}
+.inner-tab{padding:6px 10px;border-radius:8px 8px 0 0;background:rgba(77,140,77,.85);cursor:pointer;user-select:none;border:1px solid rgba(0,0,0,.1);border-bottom:0}
+.inner-tab.active{background:var(--ym-tab-active)}
+.inner-tab.selected{outline:1px solid #c7ffc7;outline-offset:-2px}
+.canvas{min-height:320px;display:flex;gap:8px;align-items:flex-start;min-width:max-content}
+.empty{min-width:420px;min-height:280px;display:grid;place-items:center;color:var(--ym-disabled);border:1px dashed var(--ym-separator);border-radius:var(--ym-radius)}
+.panel{
+  min-width:150px;
+  width:260px;
+  flex:1 1 0;
+  padding:8px;
+  background:rgba(20,20,23,.42);
+  border:1px solid var(--ym-border);
+  border-radius:var(--ym-radius);
+  position:relative;
+}
+.panel.unbordered{background:transparent;border-color:transparent}
+.panel.selected{outline:1px solid #a7e6a7}
+.panel.drag-before::before,.panel.drag-after::after{content:"";position:absolute;top:0;bottom:0;width:3px;background:#9ee19e;border-radius:4px;z-index:3}
+.panel.drag-before::before{left:-6px}.panel.drag-after::after{right:-6px}
+.panel-title{font-weight:700;padding:1px 1px 5px;border-bottom:1px solid var(--ym-separator);margin-bottom:7px;cursor:grab;user-select:none}
+.panel-title:active{cursor:grabbing}
+.panel-controls{min-height:70px;overflow:visible}
+.control{position:relative;padding:3px;margin-bottom:3px;border:1px solid transparent;border-radius:5px;cursor:pointer}
+.control:hover{background:rgba(255,255,255,.025)}
+.control.selected{border-color:#a7e6a7;background:rgba(89,150,89,.08)}
+.control.same-line{display:inline-block;vertical-align:top;margin-right:3px}
+.control.drag-before::before,.control.drag-after::after{content:"";position:absolute;left:2px;right:2px;height:2px;background:#a7e6a7;border-radius:3px;z-index:4}
+.control.drag-before::before{top:-3px}.control.drag-after::after{bottom:-3px}
+.dropzone.dragover{outline:1px dashed #a7e6a7;background:rgba(89,150,89,.08)}
+.preview-label{font-size:12px;margin-bottom:3px;color:var(--ym-text)}
+.preview-button{min-width:75px;padding:6px 9px;text-align:center;color:#fff;background:var(--ym-button);border-radius:var(--ym-radius);border:0}
+.preview-button:hover{background:var(--ym-button-hover)}
+.preview-frame{min-height:28px;padding:5px 7px;background:var(--ym-frame);border-radius:var(--ym-radius);color:#c5c5c7;display:flex;align-items:center}
+.preview-multiline{min-height:70px;align-items:flex-start;color:#909095}
+.preview-combo{justify-content:space-between;gap:10px}
+.preview-combo .arrow{padding-left:8px;color:#ddd;border-left:1px solid rgba(255,255,255,.08)}
+.preview-list{padding:3px;background:var(--ym-frame);border-radius:var(--ym-radius);overflow:auto}
+.preview-list-row{padding:4px 6px;border-radius:4px}
+.preview-list-row.selected-row{background:var(--ym-header);color:#fff}
+.preview-text{color:var(--ym-text)}
+.preview-muted{color:var(--ym-disabled);font-size:12px;padding:5px}
+.preview-separator{padding:2px 0 5px;margin-top:3px;border-bottom:1px solid var(--ym-separator);font-weight:700}
+.preview-slider-line{height:7px;position:relative;background:var(--ym-frame);border-radius:8px;margin:8px 4px 5px}
+.preview-slider-fill{position:absolute;left:0;top:0;bottom:0;width:50%;background:var(--ym-button);border-radius:8px}
+.preview-slider-grab{position:absolute;left:50%;top:50%;width:12px;height:12px;transform:translate(-50%,-50%);background:var(--ym-button-active);border-radius:50%}
+.ym-toggle-row,.ym-checkbox-row{display:flex;align-items:center;gap:7px;min-height:27px}
+.ym-toggle{width:38px;height:20px;flex:0 0 auto;padding:2px;border-radius:10px;background:var(--ym-frame);position:relative}
+.ym-toggle.on{background:var(--ym-button)}
+.ym-toggle-knob{width:16px;height:16px;border-radius:50%;background:var(--ym-text);position:absolute;top:2px;left:2px}
+.ym-toggle.on .ym-toggle-knob{left:20px}
+.ym-checkbox{width:18px;height:18px;flex:0 0 auto;border-radius:4px;background:var(--ym-frame);position:relative}
+.ym-checkbox.on::after{content:"";position:absolute;left:5px;top:2px;width:5px;height:9px;border:solid var(--ym-check);border-width:0 2px 2px 0;transform:rotate(45deg)}
+.collapsible{border-radius:var(--ym-radius);overflow:hidden}
+.collapsible-head{padding:5px 7px;background:var(--ym-frame);font-weight:600}
+.collapsible-children{min-height:36px;padding:5px;overflow:visible;border:1px solid var(--ym-border);border-top:0;border-radius:0 0 var(--ym-radius) var(--ym-radius)}
+
+.inspector h3{font-size:14px;margin:0 0 8px}
+.check-field{display:flex;align-items:center;gap:8px;margin:9px 0;color:#fff;font-size:12px}
+.check-field input{width:auto;accent-color:var(--tool-success)}
+.inspector-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}
+.inspector-actions button{margin:0}
+.status-box{border-radius:8px;padding:8px;margin-top:9px;text-align:center;background:#292929;border:1px solid #444;font-size:11px;color:#ddd}
+@media(max-width:1200px){.app{grid-template-columns:230px 670px 280px}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">YimMenuV2 Layout Designer</div>
+  <div class="path" id="previewPath"></div>
+  <div class="grow"></div>
+  <button id="newBtn" class="subtle">New</button>
+  <button id="importBtn" class="primary">Import</button>
+  <button id="exportBtn" class="success">Export</button>
+  <button id="copyBtn" class="primary">Copy LLM Prompt</button>
+  <button type="button" class="subtle home-button" onclick="window.location.href='index.html'" title="Back to Desktop" aria-label="Back to Desktop">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg>
+  </button>
+  <input id="fileInput" type="file" accept=".yimlayout,.json,application/json" hidden>
+</div>
+
+<div class="app">
+  <aside class="column sidebar">
+    <div class="column-content">
+      <fieldset>
+        <legend>Layout</legend>
+        <label for="layoutName">Layout name</label>
+        <input id="layoutName" placeholder="Trailer+ Layout">
+        <label for="targetSubmenu">YimMenu submenu</label>
+        <input id="targetSubmenu" placeholder="Vehicle">
+        <label for="targetCategory">YimMenu category</label>
+        <input id="targetCategory" placeholder="Trailer+">
+      </fieldset>
+
+      <fieldset>
+        <legend>Current Selection</legend>
+        <label for="currentTabSelect">Current tab</label>
+        <select id="currentTabSelect"></select>
+        <div class="row-buttons">
+          <button id="addTabBtn" class="primary">Add Tab</button>
+          <button id="deleteTabBtn" class="danger">Delete Tab</button>
+        </div>
+
+        <label for="currentPanelSelect">Current panel</label>
+        <select id="currentPanelSelect"></select>
+        <div class="row-buttons">
+          <button id="addPanelBtn" class="primary">Add Panel</button>
+          <button id="deletePanelBtn" class="danger">Delete Panel</button>
+        </div>
+
+        <label for="selectedElementSelect">Selected element</label>
+        <select id="selectedElementSelect"></select>
+        <div class="small-note">Use the dropdowns for selection. You can still click the preview to inspect an item.</div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Controls</legend>
+        <div class="tool-list" id="palette"></div>
+        <div class="small-note">Click a control to add it to the current panel, or drag it directly into the preview. Existing controls and panels can also be dragged to reorder them.</div>
+      </fieldset>
+
+      <div class="status-box">The center reproduces the YimMenuV2 Classic shell. Only the target category content is exported.</div>
+    </div>
+  </aside>
+
+  <main class="column workspace">
+    <div class="workspace-title">
+      <span>YimMenuV2 Classic Preview</span>
+      <span>Scrollbars appear whenever preview content exceeds its container.</span>
+    </div>
+    <div class="preview-wrap">
+      <div class="ym-window">
+        <div class="ym-left">
+          <div class="ym-submenus" id="submenuPreview"></div>
+          <div class="ym-brand">YimMenuV2</div>
+        </div>
+        <div class="ym-right">
+          <div class="ym-categories" id="categoryPreview"></div>
+          <div class="ym-options">
+            <div class="inner-tabs" id="tabs"></div>
+            <div class="canvas" id="canvas"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <aside class="column inspector">
+    <div class="column-content">
+      <fieldset>
+        <legend>Inspector</legend>
+        <div id="inspectorContent" class="small-note">Select a tab, panel, or control.</div>
+      </fieldset>
+      <fieldset>
+        <legend>Reference</legend>
+        <div class="small-note">
+          YimMenuV2 boolean command preview uses the repository's custom toggle model: FrameBg when off, Button when on, and Text for the knob. Dropdown controls mirror ListCommandItem's BeginCombo behavior.
+        </div>
+      </fieldset>
+    </div>
+  </aside>
+</div>
+
+<script>
+(() => {
+  const CONTROL_TYPES = [
+    ["button","Button"],
+    ["toggle","Toggle"],
+    ["checkbox","Checkbox"],
+    ["input","Input"],
+    ["multiline","Multiline"],
+    ["dropdown","Dropdown"],
+    ["slider","Slider"],
+    ["list","List"],
+    ["text","Text"],
+    ["separator","Separator"],
+    ["collapsible","Collapsible"],
+    ["spacer","Spacer"]
+  ];
+
+  const $ = id => document.getElementById(id);
+  const clone = value => JSON.parse(JSON.stringify(value));
+  const makeId = prefix => `${prefix}_${Math.random().toString(36).slice(2,8)}`;
+  let dragPayload = null;
+
+  function defaultControl(kind) {
+    const base = {
+      type:kind,
+      id:makeId(kind),
+      label:CONTROL_TYPES.find(x => x[0] === kind)?.[1] || kind,
+      tooltip:"",
+      width:"full",
+      widthPx:180,
+      sameLineBefore:false,
+      disabled:false
+    };
+    if (kind === "button") Object.assign(base,{actionKey:"action"});
+    if (kind === "toggle" || kind === "checkbox") Object.assign(base,{default:false,stateKey:makeId("state")});
+    if (kind === "input") Object.assign(base,{placeholder:"",stateKey:makeId("text")});
+    if (kind === "multiline") Object.assign(base,{placeholder:"",stateKey:makeId("text"),height:120});
+    if (kind === "dropdown") Object.assign(base,{options:["Option A","Option B"],stateKey:makeId("selected")});
+    if (kind === "slider") Object.assign(base,{min:0,max:100,step:1,default:50,stateKey:makeId("value")});
+    if (kind === "list") Object.assign(base,{options:["Item 1","Item 2","Item 3"],height:150,multiSelect:false,stateKey:makeId("selected")});
+    if (kind === "text") Object.assign(base,{text:"Text",wrapped:true});
+    if (kind === "separator") Object.assign(base,{label:"Section"});
+    if (kind === "collapsible") Object.assign(base,{label:"Category",defaultOpen:true,controls:[]});
+    if (kind === "spacer") Object.assign(base,{height:8});
+    return base;
+  }
+
+  function freshLayout() {
+    return {
+      schema:"yimlayout",
+      version:3,
+      meta:{
+        name:"New YimMenuV2 Layout",
+        renderer:"imgui",
+        previewTheme:"classic",
+        target:{submenu:"Vehicle",category:"Example+"},
+        notes:"Outer YimMenuV2 shell is preview-only. tabs[] are optional inner tabs rendered inside the target category."
+      },
+      tabs:[{
+        id:makeId("tab"),
+        label:"Main",
+        panels:[
+          {id:makeId("panel"),label:"Left Panel",widthWeight:1,bordered:true,minHeight:320,controls:[
+            {...defaultControl("dropdown"),label:"Example"},
+            {...defaultControl("toggle"),label:"Enabled"},
+            {...defaultControl("button"),label:"Run"}
+          ]},
+          {id:makeId("panel"),label:"Right Panel",widthWeight:1,bordered:true,minHeight:320,controls:[
+            {...defaultControl("list"),label:"Items",height:210}
+          ]}
+        ]
+      }]
+    };
+  }
+
+  let state = freshLayout();
+  let activeTabId = state.tabs[0].id;
+  let activePanelId = state.tabs[0].panels[0].id;
+  let selectedId = activePanelId;
+
+  function walkControls(controls, fn, parent) {
+    for (const control of controls || []) {
+      if (fn(control,parent) === false) return false;
+      if (control.type === "collapsible" && walkControls(control.controls || [],fn,control) === false) return false;
+    }
+    return true;
+  }
+
+  function findItem(id) {
+    if (!id) return null;
+    for (const tab of state.tabs) {
+      if (tab.id === id) return {item:tab,type:"tab",parent:state};
+      for (const panel of tab.panels || []) {
+        if (panel.id === id) return {item:panel,type:"panel",parent:tab};
+        let found = null;
+        walkControls(panel.controls || [],(control,parent) => {
+          if (control.id === id) {
+            found = {item:control,type:"control",parent:parent || panel};
+            return false;
+          }
+        },panel);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  function findControlContainer(id) {
+    for (const tab of state.tabs) {
+      for (const panel of tab.panels || []) {
+        const direct = panel.controls || [];
+        const directIndex = direct.findIndex(x => x.id === id);
+        if (directIndex >= 0) return {array:direct,index:directIndex,owner:panel};
+        let result = null;
+        walkControls(direct,control => {
+          if (control.type !== "collapsible") return;
+          const children = control.controls || [];
+          const childIndex = children.findIndex(x => x.id === id);
+          if (childIndex >= 0) {
+            result = {array:children,index:childIndex,owner:control};
+            return false;
+          }
+        },panel);
+        if (result) return result;
+      }
+    }
+    return null;
+  }
+
+  function containsControl(control,id) {
+    if (!control || control.type !== "collapsible") return false;
+    let contains = false;
+    walkControls(control.controls || [],child => {
+      if (child.id === id) { contains = true; return false; }
+    },control);
+    return contains;
+  }
+
+  function activeTab() {
+    if (!state.tabs.some(t => t.id === activeTabId)) activeTabId = state.tabs[0]?.id || null;
+    return state.tabs.find(t => t.id === activeTabId) || null;
+  }
+
+  function activePanel() {
+    const tab = activeTab();
+    if (!tab) return null;
+    if (!tab.panels.some(p => p.id === activePanelId)) activePanelId = tab.panels[0]?.id || null;
+    return tab.panels.find(p => p.id === activePanelId) || null;
+  }
+
+  function normalizeImportedLayout(parsed) {
+    parsed.version = Math.max(3,Number(parsed.version) || 1);
+    parsed.meta ||= {};
+    parsed.meta.renderer ||= "imgui";
+    parsed.meta.previewTheme = "classic";
+    parsed.meta.target ||= {submenu:"World",category:"Imported"};
+    parsed.tabs ||= [];
+    for (const tab of parsed.tabs) {
+      tab.id ||= makeId("tab");
+      tab.label ||= "Tab";
+      tab.panels ||= [];
+      for (const panel of tab.panels) {
+        panel.id ||= makeId("panel");
+        panel.bordered = panel.bordered !== false;
+        panel.minHeight ||= 320;
+        panel.widthWeight ||= 1;
+        panel.controls ||= [];
+      }
+    }
+    return parsed;
+  }
+
+  function saveLocal() {
+    try { localStorage.setItem("yimlayout_autosave_v3",JSON.stringify(state)); } catch (_) {}
+  }
+
+  function clearDragMarkers() {
+    document.querySelectorAll(".drag-before,.drag-after,.dragover").forEach(el => el.classList.remove("drag-before","drag-after","dragover"));
+  }
+
+  function setDrag(kind,id,extra={}) { dragPayload = {kind,id,...extra}; }
+  function endDrag() { dragPayload = null; clearDragMarkers(); }
+
+  function select(id) {
+    const found = findItem(id);
+    if (!found) return;
+    selectedId = id;
+    if (found.type === "tab") {
+      activeTabId = id;
+      activePanelId = found.item.panels?.[0]?.id || null;
+    } else if (found.type === "panel") {
+      activeTabId = found.parent.id;
+      activePanelId = id;
+    } else {
+      const container = findControlContainer(id);
+      let owner = container?.owner;
+      while (owner && owner.type === "collapsible") {
+        const ownerContainer = findControlContainer(owner.id);
+        owner = ownerContainer?.owner;
+      }
+      if (owner?.id) {
+        activePanelId = owner.id;
+        const panelFound = findItem(owner.id);
+        if (panelFound?.parent?.id) activeTabId = panelFound.parent.id;
+      }
+    }
+    render();
+  }
+
+  function widthStyle(control) {
+    if (control.width === "auto") return "auto";
+    if (control.width === "px") return `${Math.max(20,Number(control.widthPx) || 180)}px`;
+    return "100%";
+  }
+
+  function render() {
+    activeTab();
+    activePanel();
+    $("layoutName").value = state.meta?.name || "";
+    $("targetSubmenu").value = state.meta?.target?.submenu || "";
+    $("targetCategory").value = state.meta?.target?.category || "";
+    renderSelectors();
+    renderYimShell();
+    renderTabs();
+    renderCanvas();
+    renderInspector();
+    saveLocal();
+  }
+
+  function renderSelectors() {
+    const tabSelect = $("currentTabSelect");
+    tabSelect.innerHTML = "";
+    state.tabs.forEach(tab => {
+      const option = document.createElement("option");
+      option.value = tab.id;
+      option.textContent = tab.label || "Tab";
+      option.selected = tab.id === activeTabId;
+      tabSelect.appendChild(option);
+    });
+    tabSelect.disabled = state.tabs.length === 0;
+
+    const panelSelect = $("currentPanelSelect");
+    panelSelect.innerHTML = "";
+    const tab = activeTab();
+    (tab?.panels || []).forEach(panel => {
+      const option = document.createElement("option");
+      option.value = panel.id;
+      option.textContent = panel.label || "Panel";
+      option.selected = panel.id === activePanelId;
+      panelSelect.appendChild(option);
+    });
+    panelSelect.disabled = !tab || !tab.panels?.length;
+
+    const elementSelect = $("selectedElementSelect");
+    elementSelect.innerHTML = "";
+    if (tab) {
+      addSelectOption(elementSelect,tab.id,`Tab · ${tab.label}`,selectedId === tab.id);
+      for (const panel of tab.panels || []) {
+        addSelectOption(elementSelect,panel.id,`Panel · ${panel.label || "Untitled"}`,selectedId === panel.id);
+        appendControlOptions(elementSelect,panel.controls || [],"  ");
+      }
+    }
+    elementSelect.disabled = !elementSelect.options.length;
+  }
+
+  function addSelectOption(select,value,text,selected=false) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = text;
+    option.selected = selected;
+    select.appendChild(option);
+  }
+
+  function appendControlOptions(select,controls,prefix) {
+    for (const control of controls) {
+      addSelectOption(select,control.id,`${prefix}${control.type} · ${control.label || control.text || ""}`,selectedId === control.id);
+      if (control.type === "collapsible") appendControlOptions(select,control.controls || [],prefix + "  ");
+    }
+  }
+
+  function renderYimShell() {
+    const submenuRoot = $("submenuPreview");
+    submenuRoot.innerHTML = "";
+    const target = state.meta?.target?.submenu || "Vehicle";
+    const defaults = ["Self","Vehicle","Teleport","Network","Recovery","World","Players","Settings"];
+    if (!defaults.includes(target)) defaults.push(target);
+    for (const name of defaults) {
+      const el = document.createElement("div");
+      el.className = "ym-submenu" + (name === target ? " active" : "");
+      el.textContent = name;
+      submenuRoot.appendChild(el);
+    }
+
+    const categoryRoot = $("categoryPreview");
+    categoryRoot.innerHTML = "";
+    const category = state.meta?.target?.category || "Category";
+    const neighbors = category === "Main" ? ["Main"] : ["Main",category];
+    for (const name of neighbors) {
+      const el = document.createElement("div");
+      el.className = "ym-category" + (name === category ? " active" : "");
+      el.textContent = name;
+      categoryRoot.appendChild(el);
+    }
+
+    const tab = activeTab();
+    $("previewPath").textContent = `${target} > ${category}${tab ? ` > ${tab.label}` : ""}`;
+  }
+
+  function renderTabs() {
+    const root = $("tabs");
+    root.innerHTML = "";
+    const showTabs = state.tabs.length > 1 || (state.tabs[0]?.label || "Main") !== "Main";
+    root.style.display = showTabs ? "flex" : "none";
+    if (!showTabs) return;
+    state.tabs.forEach(tab => {
+      const el = document.createElement("div");
+      el.className = "inner-tab" + (tab.id === activeTabId ? " active" : "") + (tab.id === selectedId ? " selected" : "");
+      el.textContent = tab.label || "Tab";
+      el.onclick = () => select(tab.id);
+      root.appendChild(el);
+    });
+  }
+
+  function renderCanvas() {
+    const canvas = $("canvas");
+    canvas.innerHTML = "";
+    const tab = activeTab();
+    if (!tab) {
+      canvas.innerHTML = `<div class="empty">Add a tab to begin.</div>`;
+      return;
+    }
+    if (!tab.panels?.length) {
+      canvas.innerHTML = `<div class="empty">Add a panel to this tab.</div>`;
+      setupPanelCanvasDrop(canvas,tab);
+      return;
+    }
+
+    setupPanelCanvasDrop(canvas,tab);
+    tab.panels.forEach(panel => {
+      const el = document.createElement("section");
+      el.className = "panel" + (panel.bordered === false ? " unbordered" : "") + (panel.id === selectedId ? " selected" : "");
+      el.style.flexGrow = `${Math.max(.1,Number(panel.widthWeight) || 1)}`;
+      el.style.flexBasis = "0";
+      el.style.minHeight = `${Math.max(110,Number(panel.minHeight) || 320)}px`;
+      el.dataset.panelId = panel.id;
+      el.onclick = e => { if (e.target === el) select(panel.id); };
+
+      el.ondragover = e => {
+        if (dragPayload?.kind !== "panel" || dragPayload.id === panel.id) return;
+        e.preventDefault(); e.stopPropagation(); clearDragMarkers();
+        const before = e.clientX < el.getBoundingClientRect().left + el.getBoundingClientRect().width / 2;
+        el.classList.add(before ? "drag-before" : "drag-after");
+      };
+      el.ondrop = e => {
+        if (dragPayload?.kind !== "panel") return;
+        e.preventDefault(); e.stopPropagation();
+        const before = e.clientX < el.getBoundingClientRect().left + el.getBoundingClientRect().width / 2;
+        movePanel(dragPayload.id,panel.id,before);
+        endDrag();
+      };
+
+      if (panel.label) {
+        const title = document.createElement("div");
+        title.className = "panel-title";
+        title.textContent = panel.label;
+        title.draggable = true;
+        title.onclick = e => { e.stopPropagation(); select(panel.id); };
+        title.ondragstart = e => { e.stopPropagation(); setDrag("panel",panel.id); e.dataTransfer.effectAllowed = "move"; };
+        title.ondragend = endDrag;
+        el.appendChild(title);
+      }
+
+      const list = document.createElement("div");
+      list.className = "panel-controls dropzone";
+      setupControlContainerDropzone(list,panel.controls,panel);
+      (panel.controls || []).forEach(control => list.appendChild(controlPreview(control)));
+      if (!(panel.controls || []).length) {
+        const empty = document.createElement("div");
+        empty.className = "preview-muted";
+        empty.textContent = "Drop controls here";
+        list.appendChild(empty);
+      }
+      el.appendChild(list);
+      canvas.appendChild(el);
+    });
+  }
+
+  function setupPanelCanvasDrop(canvas,tab) {
+    canvas.ondragover = e => {
+      if (dragPayload?.kind !== "panel") return;
+      e.preventDefault();
+    };
+    canvas.ondrop = e => {
+      if (dragPayload?.kind !== "panel") return;
+      e.preventDefault();
+      const panel = findItem(dragPayload.id);
+      if (!panel || panel.type !== "panel") return;
+      const sourceArray = panel.parent.panels;
+      const index = sourceArray.findIndex(p => p.id === dragPayload.id);
+      if (index < 0) return;
+      const [moved] = sourceArray.splice(index,1);
+      tab.panels.push(moved);
+      activeTabId = tab.id;
+      activePanelId = moved.id;
+      selectedId = moved.id;
+      endDrag(); render();
+    };
+  }
+
+  function controlPreview(control) {
+    const wrap = document.createElement("div");
+    wrap.className = "control" + (control.id === selectedId ? " selected" : "") + (control.sameLineBefore ? " same-line" : "");
+    wrap.dataset.controlId = control.id;
+    wrap.draggable = true;
+    wrap.style.width = control.sameLineBefore ? widthStyle(control) : "100%";
+    if (control.disabled) wrap.style.opacity = ".45";
+    if (control.tooltip) wrap.title = control.tooltip;
+    wrap.onclick = e => { e.stopPropagation(); select(control.id); };
+    wrap.ondragstart = e => { e.stopPropagation(); setDrag("control",control.id); e.dataTransfer.effectAllowed = "move"; };
+    wrap.ondragend = endDrag;
+    wrap.ondragover = e => {
+      if (!dragPayload || !["control","new-control"].includes(dragPayload.kind)) return;
+      if (dragPayload.kind === "control" && dragPayload.id === control.id) return;
+      e.preventDefault(); e.stopPropagation(); clearDragMarkers();
+      const before = e.clientY < wrap.getBoundingClientRect().top + wrap.getBoundingClientRect().height / 2;
+      wrap.classList.add(before ? "drag-before" : "drag-after");
+    };
+    wrap.ondrop = e => {
+      if (!dragPayload || !["control","new-control"].includes(dragPayload.kind)) return;
+      e.preventDefault(); e.stopPropagation();
+      const before = e.clientY < wrap.getBoundingClientRect().top + wrap.getBoundingClientRect().height / 2;
+      insertAtControlTarget(dragPayload,control.id,before);
+      endDrag(); render();
+    };
+
+    const label = control.label || control.type;
+    if (control.type === "button") {
+      const x = document.createElement("div"); x.className = "preview-button"; x.textContent = label; x.style.width = widthStyle(control); wrap.appendChild(x);
+    } else if (control.type === "toggle") {
+      const row = document.createElement("div"); row.className = "ym-toggle-row";
+      const toggle = document.createElement("span"); toggle.className = "ym-toggle" + (control.default ? " on" : "");
+      const knob = document.createElement("span"); knob.className = "ym-toggle-knob"; toggle.appendChild(knob);
+      const text = document.createElement("span"); text.textContent = label;
+      row.append(toggle,text); wrap.appendChild(row);
+    } else if (control.type === "checkbox") {
+      const row = document.createElement("div"); row.className = "ym-checkbox-row";
+      const box = document.createElement("span"); box.className = "ym-checkbox" + (control.default ? " on" : "");
+      const text = document.createElement("span"); text.textContent = label;
+      row.append(box,text); wrap.appendChild(row);
+    } else if (control.type === "input" || control.type === "multiline") {
+      const title = document.createElement("div"); title.className = "preview-label"; title.textContent = label; wrap.appendChild(title);
+      const x = document.createElement("div"); x.className = "preview-frame" + (control.type === "multiline" ? " preview-multiline" : ""); x.textContent = control.placeholder || ""; x.style.width = widthStyle(control); if (control.type === "multiline") x.style.height = `${Math.max(45,Number(control.height)||120)}px`; wrap.appendChild(x);
+    } else if (control.type === "dropdown") {
+      const title = document.createElement("div"); title.className = "preview-label"; title.textContent = label; wrap.appendChild(title);
+      const combo = document.createElement("div"); combo.className = "preview-frame preview-combo"; combo.style.width = widthStyle(control);
+      const value = document.createElement("span"); value.textContent = (control.options || [])[0] || "Select";
+      const arrow = document.createElement("span"); arrow.className = "arrow"; arrow.textContent = "▼";
+      combo.append(value,arrow); wrap.appendChild(combo);
+    } else if (control.type === "slider") {
+      const title = document.createElement("div"); title.className = "preview-label"; title.textContent = `${label}: ${control.default ?? 0}`; wrap.appendChild(title);
+      const line = document.createElement("div"); line.className = "preview-slider-line"; line.style.width = widthStyle(control);
+      const fill = document.createElement("div"); fill.className = "preview-slider-fill";
+      const grab = document.createElement("div"); grab.className = "preview-slider-grab";
+      const min = Number(control.min)||0, max = Number(control.max)||100, value = Number(control.default)||0;
+      const pct = Math.max(0,Math.min(100,((value-min)/(Math.max(.0001,max-min)))*100)); fill.style.width = `${pct}%`; grab.style.left = `${pct}%`;
+      line.append(fill,grab); wrap.appendChild(line);
+    } else if (control.type === "list") {
+      const title = document.createElement("div"); title.className = "preview-label"; title.textContent = label; wrap.appendChild(title);
+      const list = document.createElement("div"); list.className = "preview-list"; list.style.height = `${Math.max(50,Number(control.height)||150)}px`; list.style.width = widthStyle(control);
+      (control.options || []).forEach((v,i) => { const row = document.createElement("div"); row.className = "preview-list-row" + (i === 0 ? " selected-row" : ""); row.textContent = v; list.appendChild(row); });
+      wrap.appendChild(list);
+    } else if (control.type === "text") {
+      const x = document.createElement("div"); x.className = "preview-text"; x.textContent = control.text || label; wrap.appendChild(x);
+    } else if (control.type === "separator") {
+      const x = document.createElement("div"); x.className = "preview-separator"; x.textContent = label; wrap.appendChild(x);
+    } else if (control.type === "collapsible") {
+      const root = document.createElement("div"); root.className = "collapsible";
+      const head = document.createElement("div"); head.className = "collapsible-head"; head.textContent = `${control.defaultOpen ? "▼" : "▶"} ${label}`; root.appendChild(head);
+      const children = document.createElement("div"); children.className = "collapsible-children dropzone";
+      setupControlContainerDropzone(children,control.controls,control);
+      (control.controls || []).forEach(child => children.appendChild(controlPreview(child)));
+      if (!(control.controls || []).length) { const empty = document.createElement("div"); empty.className = "preview-muted"; empty.textContent = "Drop controls here"; children.appendChild(empty); }
+      root.appendChild(children); wrap.appendChild(root);
+    } else if (control.type === "spacer") {
+      const x = document.createElement("div"); x.style.height = `${Math.max(1,Number(control.height)||8)}px`; x.style.borderTop = "1px dashed rgba(71,71,71,.35)"; wrap.appendChild(x);
+    }
+    return wrap;
+  }
+
+  function setupControlContainerDropzone(el,targetArray,owner) {
+    el.ondragover = e => {
+      if (!dragPayload || !["control","new-control"].includes(dragPayload.kind)) return;
+      if (dragPayload.kind === "control") {
+        const found = findItem(dragPayload.id);
+        if (found?.item === owner || containsControl(found?.item,owner?.id)) return;
+      }
+      e.preventDefault(); e.stopPropagation(); el.classList.add("dragover");
+    };
+    el.ondragleave = e => { if (!el.contains(e.relatedTarget)) el.classList.remove("dragover"); };
+    el.ondrop = e => {
+      if (!dragPayload || !["control","new-control"].includes(dragPayload.kind)) return;
+      e.preventDefault(); e.stopPropagation();
+      appendPayloadToArray(dragPayload,targetArray,owner);
+      endDrag(); render();
+    };
+  }
+
+  function appendPayloadToArray(payload,targetArray,owner) {
+    if (payload.kind === "new-control") {
+      const item = defaultControl(payload.controlType);
+      targetArray.push(item); selectedId = item.id; return;
+    }
+    const source = findControlContainer(payload.id);
+    if (!source) return;
+    const found = findItem(payload.id);
+    if (found?.item === owner || containsControl(found?.item,owner?.id)) return;
+    const [item] = source.array.splice(source.index,1);
+    targetArray.push(item); selectedId = item.id;
+  }
+
+  function insertAtControlTarget(payload,targetId,before) {
+    const target = findControlContainer(targetId);
+    if (!target) return;
+    if (payload.kind === "new-control") {
+      const item = defaultControl(payload.controlType);
+      target.array.splice(target.index + (before ? 0 : 1),0,item);
+      selectedId = item.id; return;
+    }
+    if (payload.id === targetId) return;
+    const source = findControlContainer(payload.id);
+    if (!source) return;
+    const [item] = source.array.splice(source.index,1);
+    let targetIndex = target.array.findIndex(x => x.id === targetId);
+    if (targetIndex < 0) targetIndex = target.array.length;
+    target.array.splice(targetIndex + (before ? 0 : 1),0,item);
+    selectedId = item.id;
+  }
+
+  function movePanel(sourceId,targetId,before) {
+    if (sourceId === targetId) return;
+    const sourceFound = findItem(sourceId), targetFound = findItem(targetId);
+    if (!sourceFound || !targetFound || sourceFound.type !== "panel" || targetFound.type !== "panel") return;
+    const sourceArray = sourceFound.parent.panels;
+    const targetArray = targetFound.parent.panels;
+    const sourceIndex = sourceArray.findIndex(p => p.id === sourceId);
+    if (sourceIndex < 0) return;
+    const [item] = sourceArray.splice(sourceIndex,1);
+    let targetIndex = targetArray.findIndex(p => p.id === targetId);
+    if (targetIndex < 0) targetIndex = targetArray.length;
+    targetArray.splice(targetIndex + (before ? 0 : 1),0,item);
+    activeTabId = targetFound.parent.id;
+    activePanelId = item.id;
+    selectedId = item.id;
+    render();
+  }
+
+  function currentInsertArray() {
+    const found = findItem(selectedId);
+    if (found?.type === "control" && found.item.type === "collapsible") return found.item.controls;
+    if (found?.type === "control") return findControlContainer(found.item.id)?.array || activePanel()?.controls || null;
+    if (found?.type === "panel") return found.item.controls;
+    return activePanel()?.controls || null;
+  }
+
+  function addControl(kind) {
+    let target = currentInsertArray();
+    if (!target) {
+      if (!activeTab()) addTab();
+      if (!activePanel()) addPanel();
+      target = currentInsertArray();
+    }
+    const control = defaultControl(kind);
+    target.push(control); selectedId = control.id; render();
+  }
+
+  function addTab() {
+    const tab = {id:makeId("tab"),label:`Tab ${state.tabs.length+1}`,panels:[]};
+    state.tabs.push(tab); activeTabId = tab.id; activePanelId = null; selectedId = tab.id; render();
+  }
+
+  function addPanel() {
+    const tab = activeTab();
+    if (!tab) { addTab(); return addPanel(); }
+    const panel = {id:makeId("panel"),label:`Panel ${tab.panels.length+1}`,widthWeight:1,bordered:true,minHeight:320,controls:[]};
+    tab.panels.push(panel); activePanelId = panel.id; selectedId = panel.id; render();
+  }
+
+  function deleteTab() {
+    const tab = activeTab(); if (!tab) return;
+    const index = state.tabs.findIndex(t => t.id === tab.id);
+    state.tabs.splice(index,1);
+    activeTabId = state.tabs[Math.max(0,index-1)]?.id || state.tabs[0]?.id || null;
+    activePanelId = activeTab()?.panels?.[0]?.id || null;
+    selectedId = activePanelId || activeTabId;
+    render();
+  }
+
+  function deletePanel() {
+    const tab = activeTab(), panel = activePanel(); if (!tab || !panel) return;
+    const index = tab.panels.findIndex(p => p.id === panel.id);
+    tab.panels.splice(index,1);
+    activePanelId = tab.panels[Math.max(0,index-1)]?.id || tab.panels[0]?.id || null;
+    selectedId = activePanelId || tab.id;
+    render();
+  }
+
+  function field(label,value,onChange,type="text",attrs={}) {
+    const wrap = document.createElement("div");
+    const lab = document.createElement("label"); lab.textContent = label; wrap.appendChild(lab);
+    const input = document.createElement(type === "textarea" ? "textarea" : "input");
+    if (type !== "textarea") input.type = type;
+    input.value = value ?? "";
+    Object.entries(attrs).forEach(([k,v]) => input.setAttribute(k,v));
+    input.oninput = () => { onChange(input.value); renderYimShell(); renderTabs(); renderCanvas(); renderSelectors(); saveLocal(); };
+    wrap.appendChild(input); return wrap;
+  }
+
+  function checkboxField(label,value,onChange) {
+    const wrap = document.createElement("label"); wrap.className = "check-field";
+    const input = document.createElement("input"); input.type = "checkbox"; input.checked = !!value;
+    input.onchange = () => { onChange(input.checked); renderCanvas(); saveLocal(); };
+    const text = document.createElement("span"); text.textContent = label;
+    wrap.append(input,text); return wrap;
+  }
+
+  function selectField(label,value,options,onChange) {
+    const wrap = document.createElement("div");
+    const lab = document.createElement("label"); lab.textContent = label; wrap.appendChild(lab);
+    const select = document.createElement("select");
+    options.forEach(([v,t]) => { const option = document.createElement("option"); option.value = v; option.textContent = t; option.selected = v === value; select.appendChild(option); });
+    select.onchange = () => { onChange(select.value); renderCanvas(); saveLocal(); };
+    wrap.appendChild(select); return wrap;
+  }
+
+  function renderInspector() {
+    const root = $("inspectorContent"); root.innerHTML = "";
+    const found = findItem(selectedId);
+    if (!found) { root.className = "small-note"; root.textContent = "Select a tab, panel, or control."; return; }
+    root.className = "";
+    const item = found.item;
+    const heading = document.createElement("h3"); heading.textContent = found.type === "control" ? `Control · ${item.type}` : found.type === "tab" ? "Tab" : "Panel"; root.appendChild(heading);
+
+    if (found.type === "tab") {
+      root.appendChild(field("Label",item.label,v => item.label = v));
+      root.appendChild(field("ID",item.id,v => { item.id = v; activeTabId = v; selectedId = v; }));
+    } else if (found.type === "panel") {
+      root.appendChild(field("Label",item.label,v => item.label = v));
+      root.appendChild(field("ID",item.id,v => { item.id = v; activePanelId = v; selectedId = v; }));
+      root.appendChild(field("Width weight",item.widthWeight,v => item.widthWeight = Number(v)||1,"number",{step:"0.1",min:"0.1"}));
+      root.appendChild(field("Minimum height",item.minHeight,v => item.minHeight = Number(v)||320,"number",{min:"100"}));
+      root.appendChild(checkboxField("Bordered child panel",item.bordered,v => item.bordered = v));
+    } else {
+      root.appendChild(field("Label",item.label,v => item.label = v));
+      root.appendChild(field("ID",item.id,v => { item.id = v; selectedId = v; }));
+      root.appendChild(field("Tooltip",item.tooltip,v => item.tooltip = v,"textarea"));
+      root.appendChild(selectField("Width",item.width,[["full","Full available width"],["auto","Automatic"],["px","Fixed pixels"]],v => item.width = v));
+      if (item.width === "px") root.appendChild(field("Fixed width (px)",item.widthPx,v => item.widthPx = Number(v)||180,"number",{min:"20"}));
+      root.appendChild(checkboxField("Same line as previous",item.sameLineBefore,v => item.sameLineBefore = v));
+      root.appendChild(checkboxField("Disabled",item.disabled,v => item.disabled = v));
+      if (["toggle","checkbox","input","multiline","dropdown","slider","list"].includes(item.type)) root.appendChild(field("State key",item.stateKey,v => item.stateKey = v));
+      if (item.type === "button") root.appendChild(field("Action key",item.actionKey,v => item.actionKey = v));
+      if (item.type === "toggle" || item.type === "checkbox") root.appendChild(checkboxField("Default enabled",item.default,v => item.default = v));
+      if (item.type === "input" || item.type === "multiline") root.appendChild(field("Placeholder",item.placeholder,v => item.placeholder = v));
+      if (["multiline","list","spacer"].includes(item.type)) root.appendChild(field("Height",item.height,v => item.height = Number(v)||80,"number",{min:"1"}));
+      if (item.type === "dropdown" || item.type === "list") root.appendChild(field("Options (one per line)",(item.options||[]).join("\n"),v => item.options = v.split(/\r?\n/).filter(Boolean),"textarea"));
+      if (item.type === "list") root.appendChild(checkboxField("Multi-select",item.multiSelect,v => item.multiSelect = v));
+      if (item.type === "slider") {
+        root.appendChild(field("Minimum",item.min,v => item.min = Number(v),"number"));
+        root.appendChild(field("Maximum",item.max,v => item.max = Number(v),"number"));
+        root.appendChild(field("Step",item.step,v => item.step = Number(v),"number"));
+        root.appendChild(field("Default",item.default,v => item.default = Number(v),"number"));
+      }
+      if (item.type === "text") {
+        root.appendChild(field("Text",item.text,v => item.text = v,"textarea"));
+        root.appendChild(checkboxField("Wrapped",item.wrapped,v => item.wrapped = v));
+      }
+      if (item.type === "collapsible") root.appendChild(checkboxField("Default open",item.defaultOpen,v => item.defaultOpen = v));
+    }
+
+    const actions = document.createElement("div"); actions.className = "inspector-actions";
+    const up = document.createElement("button"); up.textContent = "Move Up"; up.className = "subtle"; up.onclick = () => moveSelected(-1);
+    const down = document.createElement("button"); down.textContent = "Move Down"; down.className = "subtle"; down.onclick = () => moveSelected(1);
+    const dup = document.createElement("button"); dup.textContent = "Duplicate"; dup.className = "primary"; dup.onclick = duplicateSelected;
+    const del = document.createElement("button"); del.textContent = "Delete"; del.className = "danger"; del.onclick = deleteSelected;
+    actions.append(up,down,dup,del); root.appendChild(actions);
+  }
+
+  function moveSelected(delta) {
+    const found = findItem(selectedId); if (!found) return;
+    let array,index;
+    if (found.type === "tab") { array = state.tabs; index = array.findIndex(x => x.id === selectedId); }
+    else if (found.type === "panel") { array = found.parent.panels; index = array.findIndex(x => x.id === selectedId); }
+    else { const container = findControlContainer(selectedId); array = container?.array; index = container?.index ?? -1; }
+    if (!array || index < 0) return;
+    const next = index + delta; if (next < 0 || next >= array.length) return;
+    [array[index],array[next]] = [array[next],array[index]]; render();
+  }
+
+  function deepRenewIds(item) {
+    const copy = clone(item);
+    if (copy.id) copy.id = makeId((copy.type || "item").replace(/[^a-z0-9]/gi,"_").toLowerCase());
+    if (copy.stateKey) copy.stateKey = makeId("state");
+    if (copy.controls) copy.controls = copy.controls.map(deepRenewIds);
+    return copy;
+  }
+
+  function duplicateSelected() {
+    const found = findItem(selectedId); if (!found) return;
+    const copy = deepRenewIds(found.item);
+    if (found.type === "tab") {
+      const index = state.tabs.findIndex(x => x.id === selectedId); state.tabs.splice(index+1,0,copy); activeTabId = copy.id; activePanelId = copy.panels?.[0]?.id || null;
+    } else if (found.type === "panel") {
+      const array = found.parent.panels; const index = array.findIndex(x => x.id === selectedId); array.splice(index+1,0,copy); activePanelId = copy.id;
+    } else {
+      const container = findControlContainer(selectedId); container.array.splice(container.index+1,0,copy);
+    }
+    selectedId = copy.id; render();
+  }
+
+  function deleteSelected() {
+    const found = findItem(selectedId); if (!found) return;
+    if (found.type === "tab") return deleteTab();
+    if (found.type === "panel") return deletePanel();
+    const container = findControlContainer(selectedId);
+    if (container) container.array.splice(container.index,1);
+    selectedId = activePanelId || activeTabId; render();
+  }
+
+  function exportLayout() {
+    const clean = clone(state);
+    clean.version = 3;
+    clean.meta.previewTheme = "classic";
+    const blob = new Blob([JSON.stringify(clean,null,2)],{type:"application/json"});
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    const name = (clean.meta?.name || "layout").replace(/[^a-z0-9_-]+/gi,"_").replace(/^_+|_+$/g,"") || "layout";
+    link.download = `${name}.yimlayout`;
+    document.body.appendChild(link); link.click(); link.remove();
+    setTimeout(() => URL.revokeObjectURL(link.href),500);
+  }
+
+  function importLayout(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        if (parsed.schema !== "yimlayout" || !Array.isArray(parsed.tabs)) throw new Error("Not a supported .yimlayout file.");
+        state = normalizeImportedLayout(parsed);
+        activeTabId = state.tabs[0]?.id || null;
+        activePanelId = state.tabs[0]?.panels?.[0]?.id || null;
+        selectedId = activePanelId || activeTabId;
+        render();
+      } catch (error) { alert(`Import failed: ${error.message}`); }
+    };
+    reader.readAsText(file);
+  }
+
+  function buildLlmPrompt() {
+    return `Implement this .yimlayout as YimMenuV2 Lua. Follow YIMLAYOUT_TO_YIMMENU.md. Do not recreate the outer Classic shell. Create/find the target submenu/category and implement only the exported category content. Preserve tabs, panel order, control order, widths, tooltips, state/action keys, and same-line behavior. Prefer native YimMenu command/group items when the layout maps cleanly to them; use category:imgui for custom panel geometry.\n\n\`\`\`json\n${JSON.stringify(state,null,2)}\n\`\`\``;
+  }
+
+  const palette = $("palette");
+  CONTROL_TYPES.forEach(([kind,label]) => {
+    const button = document.createElement("button");
+    button.textContent = `+ ${label}`;
+    button.className = "subtle";
+    button.draggable = true;
+    button.onclick = () => addControl(kind);
+    button.ondragstart = e => { setDrag("new-control",kind,{controlType:kind}); e.dataTransfer.effectAllowed = "copy"; };
+    button.ondragend = endDrag;
+    palette.appendChild(button);
+  });
+
+  $("currentTabSelect").onchange = e => {
+    activeTabId = e.target.value;
+    activePanelId = activeTab()?.panels?.[0]?.id || null;
+    selectedId = activePanelId || activeTabId;
+    render();
+  };
+  $("currentPanelSelect").onchange = e => { activePanelId = e.target.value; selectedId = activePanelId; render(); };
+  $("selectedElementSelect").onchange = e => select(e.target.value);
+  $("addTabBtn").onclick = addTab;
+  $("deleteTabBtn").onclick = deleteTab;
+  $("addPanelBtn").onclick = addPanel;
+  $("deletePanelBtn").onclick = deletePanel;
+  $("newBtn").onclick = () => {
+    if (!confirm("Start a new layout?")) return;
+    state = freshLayout(); activeTabId = state.tabs[0].id; activePanelId = state.tabs[0].panels[0].id; selectedId = activePanelId; render();
+  };
+  $("importBtn").onclick = () => $("fileInput").click();
+  $("fileInput").onchange = e => { const file = e.target.files?.[0]; if (file) importLayout(file); e.target.value = ""; };
+  $("exportBtn").onclick = exportLayout;
+  $("copyBtn").onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(buildLlmPrompt());
+      const old = $("copyBtn").textContent; $("copyBtn").textContent = "Copied"; $("copyBtn").className = "success";
+      setTimeout(() => { $("copyBtn").textContent = old; $("copyBtn").className = "primary"; },1000);
+    } catch (_) { prompt("Copy this prompt:",buildLlmPrompt()); }
+  };
+  $("layoutName").oninput = e => { state.meta.name = e.target.value; saveLocal(); };
+  $("targetSubmenu").oninput = e => { state.meta.target ||= {}; state.meta.target.submenu = e.target.value; renderYimShell(); saveLocal(); };
+  $("targetCategory").oninput = e => { state.meta.target ||= {}; state.meta.target.category = e.target.value; renderYimShell(); saveLocal(); };
+
+  window.addEventListener("keydown",e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); exportLayout(); }
+    if (e.key === "Delete" && !["INPUT","TEXTAREA","SELECT"].includes(document.activeElement?.tagName)) deleteSelected();
+  });
+
+  try {
+    const saved = localStorage.getItem("yimlayout_autosave_v3") || localStorage.getItem("yimlayout_autosave_v2") || localStorage.getItem("yimlayout_autosave");
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed?.schema === "yimlayout" && Array.isArray(parsed.tabs)) {
+        state = normalizeImportedLayout(parsed);
+        activeTabId = state.tabs[0]?.id || null;
+        activePanelId = state.tabs[0]?.panels?.[0]?.id || null;
+        selectedId = activePanelId || activeTabId;
+      }
+    }
+  } catch (_) {}
+
+  render();
+})();
+</script>
+</body>
+</html>
