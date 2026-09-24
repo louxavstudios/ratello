@@ -237,10 +237,149 @@ legend{
 .inspector-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px}
 .inspector-actions button{margin:0}
 .status-box{border-radius:8px;padding:8px;margin-top:9px;text-align:center;background:#292929;border:1px solid #444;font-size:11px;color:#ddd}
-@media(max-width:1200px){.app{grid-template-columns:230px 670px 280px}}
+@media(max-width:1200px){
+  .app{min-width:0;grid-template-columns:220px minmax(0,1fr) 260px}
+}
+.mobile-nav{display:none}
+@media(max-width:820px){
+  html,body{height:100%;min-height:100%;overflow:hidden}
+  body{display:flex;flex-direction:column}
+  .topbar{
+    height:auto;
+    flex:0 0 auto;
+    flex-wrap:wrap;
+    gap:6px;
+    padding:8px;
+  }
+  .topbar .brand{
+    order:1;
+    flex:1 1 calc(100% - 48px);
+    margin:0;
+    font-size:15px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .topbar .home-button{order:2;min-width:40px}
+  .topbar .path{
+    order:3;
+    flex:1 0 100%;
+    max-width:none;
+    min-width:0;
+  }
+  .topbar .grow{display:none}
+  .topbar #newBtn,.topbar #importBtn,.topbar #exportBtn,.topbar #copyBtn{
+    order:4;
+    flex:1 1 calc(25% - 6px);
+    min-width:0;
+    padding:8px 6px 11px;
+    font-size:11px;
+  }
+  .mobile-nav{
+    flex:0 0 auto;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:6px;
+    padding:7px 8px;
+    background:#1f1f1f;
+    border-bottom:1px solid #3d3d3d;
+  }
+  .mobile-nav button{
+    min-height:42px;
+    margin:0;
+    padding:8px 6px 11px;
+    box-shadow:inset 0 -3px 0 rgba(0,0,0,.22);
+    touch-action:manipulation;
+  }
+  .mobile-nav button.active{
+    background:var(--tool-primary);
+  }
+  .app{
+    flex:1 1 auto;
+    height:auto;
+    min-height:0;
+    min-width:0;
+    display:block;
+  }
+  .column{
+    display:none;
+    width:100%;
+    height:100%;
+    min-height:0;
+    overflow:auto;
+  }
+  body[data-mobile-panel="build"] .sidebar,
+  body[data-mobile-panel="preview"] .workspace,
+  body[data-mobile-panel="inspect"] .inspector{
+    display:block;
+  }
+  .sidebar,.inspector{
+    border:0;
+    box-shadow:none;
+  }
+  .column-content{padding:12px}
+  fieldset{margin-bottom:10px}
+  .row-buttons{gap:6px}
+  .tool-list{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:6px;
+  }
+  .tool-list button{
+    margin:0;
+    text-align:center;
+    min-height:44px;
+    touch-action:manipulation;
+  }
+  .workspace{
+    padding:8px;
+    overflow:auto;
+  }
+  .workspace-title{
+    flex-direction:column;
+    align-items:flex-start;
+    margin-bottom:7px;
+    font-size:11px;
+  }
+  .preview-wrap{
+    width:100%;
+    min-width:0;
+    min-height:0;
+    padding:8px;
+    justify-content:flex-start;
+    overflow:auto;
+  }
+  .ym-window{
+    width:100%;
+    min-width:0;
+    height:520px;
+    grid-template-columns:80px minmax(0,1fr);
+    gap:6px;
+    padding:6px;
+    font-size:11px;
+  }
+  .ym-left{grid-template-rows:minmax(0,1fr) 18px;gap:4px}
+  .ym-brand{font-size:10px;line-height:18px}
+  .ym-submenus{padding:4px}
+  .ym-submenu{padding:5px 4px}
+  .ym-right{grid-template-rows:42px minmax(0,1fr);gap:6px}
+  .ym-categories{gap:5px;padding:5px}
+  .ym-category{height:30px;padding:0 9px}
+  .ym-options{padding:6px;overflow:auto}
+  .inner-tabs{overflow-x:auto;overflow-y:hidden}
+  .canvas{min-height:280px}
+  .panel{width:220px;min-width:180px;padding:7px}
+  .empty{min-width:220px;min-height:240px}
+  .inspector-actions button{min-height:44px}
+}
+@media(max-width:430px){
+  .topbar #newBtn,.topbar #importBtn,.topbar #exportBtn,.topbar #copyBtn{
+    flex-basis:calc(50% - 4px);
+  }
+  .ym-window{grid-template-columns:72px minmax(0,1fr)}
+}
 </style>
 </head>
-<body>
+<body data-mobile-panel="build">
 <div class="topbar">
   <div class="brand">YimMenuV2 Layout Designer</div>
   <div class="path" id="previewPath"></div>
@@ -253,6 +392,12 @@ legend{
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg>
   </button>
   <input id="fileInput" type="file" accept=".yimlayout,.json,application/json" hidden>
+</div>
+
+<div class="mobile-nav" role="tablist" aria-label="Layout designer sections">
+  <button type="button" class="subtle active" data-mobile-target="build" role="tab" aria-selected="true">Build</button>
+  <button type="button" class="subtle" data-mobile-target="preview" role="tab" aria-selected="false">Preview</button>
+  <button type="button" class="subtle" data-mobile-target="inspect" role="tab" aria-selected="false">Inspect</button>
 </div>
 
 <div class="app">
@@ -1139,6 +1284,20 @@ legend{
   $("layoutName").oninput = e => { state.meta.name = e.target.value; saveLocal(); };
   $("targetSubmenu").oninput = e => { state.meta.target ||= {}; state.meta.target.submenu = e.target.value; renderYimShell(); saveLocal(); };
   $("targetCategory").oninput = e => { state.meta.target ||= {}; state.meta.target.category = e.target.value; renderYimShell(); saveLocal(); };
+
+  const mobile_panel_buttons = document.querySelectorAll("[data-mobile-target]");
+  function setMobilePanel(panel_name) {
+    document.body.dataset.mobilePanel = panel_name;
+    mobile_panel_buttons.forEach(button => {
+      const is_active = button.dataset.mobileTarget === panel_name;
+      button.classList.toggle("active",is_active);
+      button.setAttribute("aria-selected",String(is_active));
+    });
+  }
+  mobile_panel_buttons.forEach(button => {
+    button.addEventListener("click",() => setMobilePanel(button.dataset.mobileTarget));
+  });
+  setMobilePanel(document.body.dataset.mobilePanel || "build");
 
   window.addEventListener("keydown",e => {
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") { e.preventDefault(); exportLayout(); }
