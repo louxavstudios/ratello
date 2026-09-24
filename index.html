@@ -25,11 +25,11 @@
     }
 
     *, *::before, *::after { box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; margin: 0; background: #000; }
+    html, body { width: 100%; height: 100%; margin: 0; background: rgb(29, 29, 29); }
     body {
       overflow: hidden;
       color: var(--text);
-      background: #000;
+      background: rgb(29, 29, 29);
       font-family: "Source Sans Pro", "Segoe UI", Helvetica, Arial, sans-serif;
       font-weight: 600;
       text-rendering: optimizeLegibility;
@@ -434,7 +434,7 @@
         height:calc(58px + env(safe-area-inset-bottom));
         padding:0 18px env(safe-area-inset-bottom);
         display:grid; grid-template-columns:repeat(3,1fr); align-items:center;
-        background:rgba(29,29,29,.96); border-top:1px solid var(--border);
+        background:rgb(29,29,29); border-top:1px solid var(--border);
         backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
       }
       .mobile-system-nav button {
@@ -443,9 +443,7 @@
       }
       .mobile-system-nav button:active { opacity:.45; }
       .mobile-system-nav svg { width:23px; height:23px; fill:none; stroke:currentColor; stroke-width:2.1; stroke-linecap:round; stroke-linejoin:round; }
-      .desktop { padding-bottom: 190px; }
-      .credits { bottom: 132px; }
-      .game-link { bottom: 70px; }
+      .desktop { padding-bottom: calc(74px + env(safe-area-inset-bottom)); }
       .guide-card { max-height:calc(100svh - 32px); overflow:auto; }
       .guide-visual { min-height:110px; font-size:50px; }
     }
@@ -512,11 +510,6 @@
       <div class="modal-body" id="modalBody"></div>
     </section>
   </div>
-
-  <div class="credits">Designed by <a href="https://www.youtube.com/@gtahighclass" target="_blank" rel="noopener noreferrer">gtahighclass</a></div>
-  <a class="game-link" href="https://www.rockstargames.com/gta-v" target="_blank" rel="noopener noreferrer" aria-label="Grand Theft Auto V — official website">
-    <img src="https://cdn.gtahighclass.network/assets/273839.png" alt="Grand Theft Auto V" draggable="false">
-  </a>
 
   <nav class="mobile-system-nav" aria-label="Mobile navigation">
     <button type="button" data-mobile-nav="back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
