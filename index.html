@@ -399,12 +399,82 @@
       .game-link { right: 12px; bottom: 8px; width: 78px; transform: none; }
       .game-link:hover { transform: none; }
     }
+    .guide-overlay {
+      position: fixed; inset: 0; z-index: 1500; display: none;
+      align-items: center; justify-content: center; padding: 18px;
+      background: rgba(0,0,0,.62); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    }
+    .guide-overlay.show { display: flex; }
+    .guide-card {
+      width: min(520px, 100%); overflow: hidden; border: 2px solid var(--border);
+      border-radius: 14px; background: rgba(41,41,41,.97); box-shadow: var(--shadow);
+    }
+    .guide-visual {
+      min-height: 150px; display: grid; place-items: center; padding: 24px;
+      background: linear-gradient(145deg,#363636,#202020); font-size: 64px;
+    }
+    .guide-dismiss { padding: 12px 18px 0; text-align: right; }
+    .guide-dismiss button { border:0; background:transparent; color:var(--muted); cursor:pointer; font-size:12px; }
+    .guide-body { padding: 14px 22px 18px; }
+    .guide-step { color: var(--primary); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; }
+    .guide-title { margin: 6px 0 8px; font-size: 21px; }
+    .guide-desc { color:#c8c8c8; font-size:14px; line-height:1.55; font-weight:500; }
+    .guide-footer { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:0 22px 20px; }
+    .guide-dots { display:flex; gap:6px; }
+    .guide-dot { width:8px; height:8px; border:0; border-radius:50%; background:#555; padding:0; cursor:pointer; }
+    .guide-dot.active { background:var(--primary); }
+    .guide-actions { display:flex; gap:8px; }
+    .guide-actions button { border:0; border-radius:7px; padding:9px 13px 11px; background:#444; color:#fff; cursor:pointer; }
+    .guide-actions .primary { background:var(--primary); }
+
+    .mobile-system-nav { display:none; }
+    @media (max-width:760px) {
+      .mobile-system-nav {
+        position:fixed; left:0; right:0; bottom:0; z-index:900;
+        height:calc(58px + env(safe-area-inset-bottom));
+        padding:0 18px env(safe-area-inset-bottom);
+        display:grid; grid-template-columns:repeat(3,1fr); align-items:center;
+        background:rgba(29,29,29,.96); border-top:1px solid var(--border);
+        backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+      }
+      .mobile-system-nav button {
+        width:52px; height:48px; margin:0 auto; padding:0; border:0; background:transparent;
+        color:#ddd; display:grid; place-items:center; cursor:pointer; -webkit-tap-highlight-color:transparent;
+      }
+      .mobile-system-nav button:active { opacity:.45; }
+      .mobile-system-nav svg { width:23px; height:23px; fill:none; stroke:currentColor; stroke-width:2.1; stroke-linecap:round; stroke-linejoin:round; }
+      .desktop { padding-bottom: 190px; }
+      .credits { bottom: 132px; }
+      .game-link { bottom: 70px; }
+      .guide-card { max-height:calc(100svh - 32px); overflow:auto; }
+      .guide-visual { min-height:110px; font-size:50px; }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
     }
   </style>
 </head>
 <body>
+  <div class="guide-overlay" id="guideOverlay" aria-hidden="true">
+    <section class="guide-card" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+      <div class="guide-visual" id="guideVisual" aria-hidden="true"></div>
+      <div class="guide-dismiss"><button id="guideDismissBtn" type="button">Don't show this again</button></div>
+      <div class="guide-body">
+        <div class="guide-step" id="guideStep"></div>
+        <h2 class="guide-title" id="guideTitle"></h2>
+        <div class="guide-desc" id="guideDesc"></div>
+      </div>
+      <div class="guide-footer">
+        <div class="guide-dots" id="guideDots"></div>
+        <div class="guide-actions">
+          <button id="guidePrevBtn" type="button">Back</button>
+          <button class="primary" id="guideNextBtn" type="button">Next</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
   <div class="home-background" aria-hidden="true"></div>
 
   <div id="appTooltip" class="app-tooltip" role="tooltip">
@@ -447,6 +517,12 @@
   <a class="game-link" href="https://www.rockstargames.com/gta-v" target="_blank" rel="noopener noreferrer" aria-label="Grand Theft Auto V — official website">
     <img src="https://cdn.gtahighclass.network/assets/273839.png" alt="Grand Theft Auto V" draggable="false">
   </a>
+
+  <nav class="mobile-system-nav" aria-label="Mobile navigation">
+    <button type="button" data-mobile-nav="back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button type="button" data-mobile-nav="home" aria-label="Home"><svg viewBox="0 0 24 24"><path d="M4 11.5L12 5l8 6.5V20H5v-8.5"/><path d="M9.5 20v-5h5v5"/></svg></button>
+    <button type="button" data-mobile-nav="apps" aria-label="Opened apps"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/><path d="M9 3h9a3 3 0 0 1 3 3v9"/></svg></button>
+  </nav>
 
   <script>
     (() => {
@@ -529,6 +605,7 @@
         anchor.addEventListener('blur', hideTooltip);
         anchor.addEventListener('click', event => {
           event.preventDefault();
+          try { localStorage.setItem('ratelloLastOpenedApp', JSON.stringify({ name: app.long_name || app.name, path: app.path, icon: app.icon || '' })); } catch (_) {}
           openApp(anchor, app);
         });
         return anchor;
@@ -683,6 +760,86 @@
       document.getElementById('closeModalBtn').addEventListener('click', closeModal);
       modal.addEventListener('click', event => { if (event.target === modal) closeModal(); });
 
+      const GUIDE_DISMISSED_KEY = 'ratelloGuideDismissed';
+      const guideSteps = [
+        { icon:'👋', title:'Welcome to Ratello Corp', description:'Your GTA tool desktop. Open Emblem Helper and the YimMenuV2 Layout Designer from one place.' },
+        { icon:'🖥️', title:'Your Desktop', description:'Open tools from the desktop. On desktop, right-click the background to customize the app layout or change launcher settings.' },
+        { icon:'🧰', title:'Apps & Tools', description:'Emblem Helper converts images into emblem-ready SVG data, while Layout Designer helps build and export YimMenuV2 layouts.' },
+        { icon:'📱', title:'Mobile Support', description:'Ratello adapts to smaller screens. Use the navigation bar at the bottom to go back, return home, or reopen your most recently used tool.' },
+        { icon:'💾', title:'Local Data', description:'Launcher preferences and Layout Designer autosaves are stored locally in your browser.' }
+      ];
+
+      function initGuide() {
+        if (localStorage.getItem(GUIDE_DISMISSED_KEY) === 'true' || sessionStorage.getItem(GUIDE_DISMISSED_KEY) === 'true') return;
+        const overlay = document.getElementById('guideOverlay');
+        let currentStep = 0;
+        guideSteps.forEach((_, index) => {
+          const dot = document.createElement('button');
+          dot.type = 'button';
+          dot.className = 'guide-dot';
+          dot.setAttribute('aria-label', `Go to guide step ${index + 1}`);
+          dot.addEventListener('click', () => { currentStep = index; renderGuide(); });
+          document.getElementById('guideDots').appendChild(dot);
+        });
+        function closeGuide() {
+          overlay.classList.remove('show');
+          overlay.setAttribute('aria-hidden','true');
+        }
+        function renderGuide() {
+          const step = guideSteps[currentStep];
+          document.getElementById('guideVisual').textContent = step.icon;
+          document.getElementById('guideStep').textContent = `Step ${currentStep + 1} of ${guideSteps.length}`;
+          document.getElementById('guideTitle').textContent = step.title;
+          document.getElementById('guideDesc').textContent = step.description;
+          document.querySelectorAll('.guide-dot').forEach((dot,index) => dot.classList.toggle('active',index === currentStep));
+          document.getElementById('guidePrevBtn').style.display = currentStep === 0 ? 'none' : '';
+          document.getElementById('guideNextBtn').textContent = currentStep === guideSteps.length - 1 ? 'Get Started' : 'Next';
+        }
+        document.getElementById('guidePrevBtn').addEventListener('click', () => { if (currentStep > 0) { currentStep--; renderGuide(); } });
+        document.getElementById('guideNextBtn').addEventListener('click', () => {
+          if (currentStep < guideSteps.length - 1) { currentStep++; renderGuide(); }
+          else { sessionStorage.setItem(GUIDE_DISMISSED_KEY,'true'); closeGuide(); }
+        });
+        document.getElementById('guideDismissBtn').addEventListener('click', () => {
+          localStorage.setItem(GUIDE_DISMISSED_KEY,'true'); closeGuide();
+        });
+        overlay.addEventListener('click', event => { if (event.target === overlay) closeGuide(); });
+        renderGuide();
+        window.setTimeout(() => { overlay.classList.add('show'); overlay.setAttribute('aria-hidden','false'); }, 400);
+      }
+
+      function showOpenedApps() {
+        let app = null;
+        try { app = JSON.parse(localStorage.getItem('ratelloLastOpenedApp') || 'null'); } catch (_) {}
+        if (!app || !app.name) {
+          modalBody.innerHTML = '<p style="margin:0;color:#ccc;">No tools have been opened yet.</p>';
+        } else {
+          modalBody.innerHTML = `<div style="display:flex;align-items:center;gap:12px;">
+            ${app.icon ? '<img src="' + app.icon + '" alt="" style="width:46px;height:46px;border-radius:10px;object-fit:cover;">' : ''}
+            <div style="min-width:0;flex:1;"><strong style="display:block;">${app.name}</strong><span style="color:#aaa;font-size:12px;">Most recently opened</span></div>
+            <button class="modal-btn" id="reopenLastAppBtn" type="button">Open</button>
+          </div>`;
+          document.getElementById('reopenLastAppBtn').addEventListener('click', () => { window.location.href = app.path; });
+        }
+        document.getElementById('modalTitle').textContent = 'Opened apps';
+        modal.classList.add('show');
+        modal.setAttribute('aria-hidden','false');
+      }
+
+      document.querySelector('.mobile-system-nav')?.addEventListener('click', event => {
+        const button = event.target.closest('[data-mobile-nav]');
+        if (!button) return;
+        const action = button.dataset.mobileNav;
+        if (action === 'back') {
+          if (history.length > 1) history.back();
+        } else if (action === 'home') {
+          window.location.href = './';
+        } else if (action === 'apps') {
+          showOpenedApps();
+        }
+      });
+
+      initGuide();
       loadApps();
     })();
   </script>
