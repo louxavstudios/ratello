@@ -770,6 +770,7 @@
       ];
 
       function initGuide() {
+        if (window.location.hash === '#opened-apps') return;
         if (localStorage.getItem(GUIDE_DISMISSED_KEY) === 'true' || sessionStorage.getItem(GUIDE_DISMISSED_KEY) === 'true') return;
         const overlay = document.getElementById('guideOverlay');
         let currentStep = 0;
@@ -839,6 +840,12 @@
         }
       });
 
+      if (window.location.hash === '#opened-apps') {
+        window.setTimeout(() => {
+          showOpenedApps();
+          history.replaceState(null,'',window.location.pathname + window.location.search);
+        }, 0);
+      }
       initGuide();
       loadApps();
     })();
